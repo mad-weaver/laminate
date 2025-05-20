@@ -4,6 +4,37 @@ A CLI tool for layering structured data over structured data.
 
 Laminate allows you to take a base configuration file and apply one or more patch files to it, producing a final merged configuration. It supports various data formats like YAML, JSON, and TOML.
 
+## Installation and Building
+
+### Via `go install`
+
+If you have Go installed, you can install the `laminate` tool directly using `go install`:
+
+```bash
+go install github.com/mad-weaver/laminate
+```
+
+This will download the source code, build the executable, and place it in your Go binary directory (`$GOPATH/bin` or `$HOME/go/bin`). Make sure this directory is in your system's PATH.
+
+### Building from Source
+
+Alternatively, you can clone the repository and build the executable manually:
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mad-weaver/laminate.git
+   ```
+2. Change into the source directory:
+   ```bash
+   cd laminate/
+   ```
+3. Build the executable:
+   ```bash
+   go build -o laminate main.go
+   ```
+
+This will create a `laminate` executable. You can then run it using `./laminate [options]`.
+
 ## Usage
 
 ```bash
@@ -164,4 +195,91 @@ server:
       enabled: true
       config:
         size: 1024
+```
+
+## Deleting Keys
+
+To delete a key from the source data, set its value in a patch file to the special string `__TOMBSTONE__`.
+
+**Example:**
+
+If `base_delete.yaml` contains:
+
+```yaml
+settings:
+  database:
+    host: localhost
+    port: 5432
+    username: admin
+    password: mysecretpassword
+  logging:
+    level: info
+```
+
+And `patch_delete.yaml` contains:
+
+```yaml
+settings:
+  database:
+    password: __TOMBSTONE__
+```
+
+Command:
+
+```bash
+laminate --source base_delete.yaml --patch patch_delete.yaml
+```
+
+Output:
+
+```yaml
+settings:
+  database:
+    host: localhost
+    port: 5432
+    username: admin
+  logging:
+    level: info
+```
+
+Note that the `password` key under `settings.database` has been removed.
+
+## Using Standard Input
+
+Both the `--source` and `--patch` arguments can accept `-` as a value. This indicates that Laminate should read the structured data from standard input (`stdin`) instead of a file or URL.
+
+## Using URLs for Source and Patch
+
+In addition to local file paths and standard input (`-`), both the `--source` and `--patch` arguments can accept URLs from various schemes. This allows Laminate to load configuration data directly from remote services.
+
+The following URL schemes are supported:
+
+*   **`s3://`**: Amazon S3 buckets. The format is `s3://<bucket-name>/<object-key>`. Credentials are typically picked up from standard AWS environment variables or configuration.
+    Example: `s3://my-config-bucket/configs/app_settings.yaml`
+*   **`appconfig://`**: AWS AppConfig. The format is `appconfig://<application-name>/<environment-name>/<configuration-profile-name>`. Authentication uses standard AWS methods.
+    Example: `appconfig://my-application/prod/service-config`
+*   **`vault://`**: HashiCorp Vault. The format is `vault://<vault-server>/<path/to/secret>`. Authentication is typically via a `VAULT_TOKEN` environment variable. Note that the loader adds `https://` to the server address.
+    Example: `vault://vault.example.com/secret/data/my-app/config`
+*   **`consul://`**: Consul KV store. The format is `consul://<consul-server>/<path/to/key>`. Authentication relies on standard Consul environment variables or configuration. The server can include a port (`<consul-server>:<port>`).
+    Example: `consul://consul.example.com:8500/configs/service/myapp`
+*   **`http://`** and **`https://`**: Standard web URLs.
+    Example: `https://my-web-server.com/config.json` or `http://another-server.org/settings.yaml`
+
+### Example: Fetching from URL and Patching with Stdin
+
+This example demonstrates fetching data from a public HTTP endpoint (icanhazdadjoke.com) using a URL as the source and patching it with data provided directly via standard input (`-`). It also shows how Laminate can convert the output to a specified format (YAML in this case), even if the source data is in a different format (JSON).
+
+```bash
+echo "response_type: LAMINATE" | laminate --source https://icanhazdadjoke.com/slack --patch - --output-format yaml
+```
+
+Expected Output:
+
+```yaml
+attachments:
+    - fallback: What did one plate say to the other plate? Dinner is on me!
+      footer: <https://icanhazdadjoke.com/j/EBAsPfiNuzd|permalink> - <https://icanhazdadjoke.com|icanhazdadjoke.com>
+      text: What did one plate say to the other plate? Dinner is on me!
+response_type: LAMINATE
+username: icanhazdadjoke
 ```
