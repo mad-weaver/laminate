@@ -1,0 +1,80 @@
+package laminate_test
+
+import (
+	"os"
+	"syscall"
+	"testing"
+	"time"
+
+	"github.com/mad-weaver/laminate/cmd/laminate"
+	"github.com/stretchr/testify/require"
+)
+
+func TestSignalHandling(t *testing.T) {
+	tests := []struct {
+		name   string
+		signal os.Signal
+	}{
+		{
+			name:   "handles SIGTERM gracefully",
+			signal: syscall.SIGTERM,
+		},
+		{
+			name:   "handles SIGINT gracefully",
+			signal: os.Interrupt,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a new CLI app
+			app := laminate.NewApp()
+			require.NotNil(t, app)
+
+			// Create a done channel to track completion
+			done := make(chan struct{})
+
+			// Run the app in a goroutine
+			go func() {
+				defer close(done)
+				err := app.Run([]string{"laminate"})
+				require.NoError(t, err)
+			}()
+
+			// Wait a bit for the app to start
+			time.Sleep(1 * time.Second)
+
+			// Send the signal
+			proc, err := os.FindProcess(os.Getpid())
+			require.NoError(t, err)
+			err = proc.Signal(tt.signal)
+			require.NoError(t, err)
+
+			// Wait for graceful shutdown with timeout
+			select {
+			case <-done:
+				// App shut down gracefully
+			case <-time.After(5 * time.Second):
+				t.Fatal("timeout waiting for graceful shutdown")
+			}
+		})
+	}
+}
+
+func TestSignalHandlingTimeout(t *testing.T) {
+	// Create a new CLI app
+	app := laminate.NewApp()
+	require.NotNil(t, app)
+
+	// Start time for measuring duration
+	start := time.Now()
+
+	// Run the app without sending any signal
+	err := app.Run([]string{"laminate"})
+	require.NoError(t, err)
+
+	// Verify it took about 4 seconds (the sleep duration)
+	duration := time.Since(start)
+	require.Greater(t, duration, 3*time.Second)
+	require.Less(t, duration, 5*time.Second)
+}

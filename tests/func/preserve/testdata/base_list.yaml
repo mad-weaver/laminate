@@ -1,0 +1,12 @@
+server:
+  plugins:
+    - name: auth
+      enabled: true
+      config:
+        timeout: 30
+    - name: logger
+      enabled: true
+      config:
+        level: info
+    - name: metrics
+      enabled: false 

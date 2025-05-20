@@ -1,0 +1,6 @@
+server:
+  plugins:
+    - name: cache
+      enabled: true
+      config:
+        size: 1024 
