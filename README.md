@@ -50,7 +50,7 @@ laminate [global options]
 | `--debug`             |       | Enable debug logging.                                                                                      | `false`     | `LAMINATE_DEBUG`     |
 | `--loglevel value`    | `-l`  | Specify log level (debug, info, warn, error).                                                              | `"info"`    |                      |
 | `--logformat value`   | `-f`  | Specify log format (json, text, rich).                                                                     | `"text"`    |                      |
-| `--output-format value` |       | Specify output format (json, yaml, toml). If not specified, it defaults to the format of the source file. |             |                      |
+| `--output-format value` | `-o`      | Specify output format (json, yaml, toml). If not specified, it defaults to the format of the source file. |             |                      |
 | `--merge-strategy value`|       | Specify list merge strategy (preserve, overwrite).                                                         | `"overwrite"` |                      |
 | `--help`              | `-h`  | Show help.                                                                                                 |             |                      |
 
