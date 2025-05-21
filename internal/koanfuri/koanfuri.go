@@ -93,8 +93,8 @@ func (k *KoanfURI) load() error {
 		return k.loadFile()
 	case "http", "https":
 		return k.loadHTTP()
-	case "s3":
-		return k.loadS3()
+	case "s3", "gs", "azblob":
+		return k.loadCloud()
 	case "appconfig":
 		return k.loadAppConfig()
 	case "vault":
