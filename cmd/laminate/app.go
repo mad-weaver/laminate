@@ -50,8 +50,9 @@ func NewApp() *cli.App {
 				Value:   "text",
 			},
 			&cli.StringFlag{
-				Name:  "output-format",
-				Usage: "Specify output format(json, yaml, toml)",
+				Name:    "output-format",
+				Aliases: []string{"o"},
+				Usage:   "Specify output format(json, yaml, toml)",
 				Action: func(c *cli.Context, f string) error {
 					if f != "json" && f != "yaml" && f != "toml" {
 						return fmt.Errorf("invalid output format: %s", f)
