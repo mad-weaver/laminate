@@ -93,7 +93,10 @@ You can merge them using the following command:
 laminate --source base.yaml --patch patch1.json --patch patch2.yaml
 ```
 
-By default, the output format will match the source format (YAML in this case), and the merge strategy for lists is `overwrite`.
+Patches are applied in the order they are given on the command line. In this case, patch2.yaml would patch over anything conflicting in patch1.json were there any conflicting paths.
+
+
+By default, the output format will match the source format (YAML in this case). If there's a file extension, it will use that as a hint for format, otherwise, it will try and guess based on the contents of the data what type of format the data is. 
 
 The output will be:
 
@@ -258,7 +261,7 @@ The following URL schemes are supported:
     Example: `s3://my-config-bucket/configs/app_settings.yaml`
 *   **`appconfig://`**: AWS AppConfig. The format is `appconfig://<application-name>/<environment-name>/<configuration-profile-name>`. Authentication uses standard AWS methods.
     Example: `appconfig://my-application/prod/service-config`
-*   **`vault://`**: HashiCorp Vault. The format is `vault://<vault-server>/<path/to/secret>`. Authentication is typically via a `VAULT_TOKEN` environment variable. Note that the loader adds `https://` to the server address.
+*   **`vault://`**: HashiCorp Vault. The format is `vault://<vault-server>/<path/to/secret>`. Authentication is typically via a `VAULT_TOKEN` environment variable. Note that the vault client assumes SSL/TLS.
     Example: `vault://vault.example.com/secret/data/my-app/config`
 *   **`consul://`**: Consul KV store. The format is `consul://<consul-server>/<path/to/key>`. Authentication relies on standard Consul environment variables or configuration. The server can include a port (`<consul-server>:<port>`).
     Example: `consul://consul.example.com:8500/configs/service/myapp`
@@ -283,3 +286,15 @@ attachments:
 response_type: LAMINATE
 username: icanhazdadjoke
 ```
+
+## S3 / AppConfig
+
+Laminate leverages `gocloud.dev` for interacting with S3 and AWS AppConfig.
+This means that Laminate will automatically find credentials and configuration in the same way that the AWS CLI does, using standard environment variables, shared credential files, and IAM roles.
+
+In theory, you should be able to append gocloud extended parameters to the end of your URL to use any s3 compatible endpoint, laminate will correctly splice apart the bucket ID and path but independent s3 providers are sometimes slightly different so this is experimental and untested. 
+
+```
+s3://your-bucket-name/object.json?endpoint=<your.s3.compatible.host>&region=<some region id>
+```
+
