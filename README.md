@@ -258,15 +258,24 @@ In addition to local file paths and standard input (`-`), both the `--source` an
 The following URL schemes are supported:
 
 *   **`s3://`**: Amazon S3 buckets. The format is `s3://<bucket-name>/<object-key>`. Credentials are typically picked up from standard AWS environment variables or configuration.
+
     Example: `s3://my-config-bucket/configs/app_settings.yaml`
+*   **`gs://`**: Google Cloud Object store. The format is `gs://<bucket-name>/<object-key>`. Credentials are typically picked up from standard AWS environment variables or configuration. **experimental** 
+
+    Example: `gs://my-config-bucket/configs/app_settings.yaml`
 *   **`appconfig://`**: AWS AppConfig. The format is `appconfig://<application-name>/<environment-name>/<configuration-profile-name>`. Authentication uses standard AWS methods.
+
     Example: `appconfig://my-application/prod/service-config`
 *   **`vault://`**: HashiCorp Vault. The format is `vault://<vault-server>/<path/to/secret>`. Authentication is typically via a `VAULT_TOKEN` environment variable. Note that the vault client assumes SSL/TLS.
+
     Example: `vault://vault.example.com/secret/data/my-app/config`
 *   **`consul://`**: Consul KV store. The format is `consul://<consul-server>/<path/to/key>`. Authentication relies on standard Consul environment variables or configuration. The server can include a port (`<consul-server>:<port>`).
+
     Example: `consul://consul.example.com:8500/configs/service/myapp`
 *   **`http://`** and **`https://`**: Standard web URLs.
-    Example: `https://my-web-server.com/config.json` or `http://another-server.org/settings.yaml`
+
+    Example: `https://my-web-server.com/config.json`
+
 
 ### Example: Fetching from URL and Patching with Stdin
 
